@@ -65,7 +65,7 @@ class ActividadRepository  @Inject constructor(
             .map { list -> list.map { it.toActividad() } }
     }
 
-    override fun getActividadesPorCategoriaPriorida(categoria: Categoria): Flow<List<Actividad>> {
+    override fun getActividadesPorCategoriaPrioridad(categoria: Categoria): Flow<List<Actividad>> {
         return actividadDao.getActividadesPorCategoriaPrioridad(categoria)
             .map { list -> list.map { it.toActividad() } }
     }

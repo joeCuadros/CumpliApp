@@ -19,7 +19,7 @@ interface  InterfaceActividadRepository {
     fun getActividadesOrdenadasPorFechaCompletadas(): Flow<List<Actividad>>
     // Filtros
     fun getActividadesPorCategoriaFecha(categoria: Categoria): Flow<List<Actividad>>
-    fun getActividadesPorCategoriaPriorida(categoria: Categoria): Flow<List<Actividad>>
+    fun getActividadesPorCategoriaPrioridad(categoria: Categoria): Flow<List<Actividad>>
     fun getActividadesConRecordatorio(): Flow<List<Actividad>>
     // Busqueda
     fun buscarActividadesPrioridad(query: String): Flow<List<Actividad>>
