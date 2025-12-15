@@ -24,8 +24,10 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.idnp2025b.cumpliapp.ui.screens.completadas.CompletadasScreen
 import com.idnp2025b.cumpliapp.ui.screens.crear.CrearActividadScreen
 import com.idnp2025b.cumpliapp.ui.screens.editar.EditarActividadScreen
+import com.idnp2025b.cumpliapp.ui.screens.estadisticas.EstadisticasScreen
 import com.idnp2025b.cumpliapp.ui.screens.lista.ListaActividadesScreen
 
 object Rutas {
@@ -99,8 +101,11 @@ fun Navigation(
                     onNavigateUp = { navController.popBackStack() }
                 )
             }
+            composable(route = Rutas.COMPLETADAS) {
+                CompletadasScreen()
+            }
             composable(route = Rutas.ESTADISTICAS) {
-                Text(text = "ESTADISTICAS")
+                EstadisticasScreen()
             }
             composable(route = Rutas.CONFIGURACION) {
                 Text(text = "CONFIGURACION")
