@@ -25,6 +25,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.idnp2025b.cumpliapp.ui.screens.completadas.CompletadasScreen
+import com.idnp2025b.cumpliapp.ui.screens.configuracion.ConfiguracionScreen
 import com.idnp2025b.cumpliapp.ui.screens.crear.CrearActividadScreen
 import com.idnp2025b.cumpliapp.ui.screens.editar.EditarActividadScreen
 import com.idnp2025b.cumpliapp.ui.screens.estadisticas.EstadisticasScreen
@@ -108,7 +109,7 @@ fun Navigation(
                 EstadisticasScreen()
             }
             composable(route = Rutas.CONFIGURACION) {
-                Text(text = "CONFIGURACION")
+                ConfiguracionScreen()
             }
         }
     }
