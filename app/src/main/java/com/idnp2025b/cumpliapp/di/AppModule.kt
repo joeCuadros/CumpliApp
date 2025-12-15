@@ -1,7 +1,7 @@
 package com.idnp2025b.cumpliapp.di
 
 import android.content.Context
-import com.idnp2025b.cumpliapp.data.preferences.PreferencesManager
+import com.idnp2025b.cumpliapp.data.local.preferences.PreferencesManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
