@@ -98,7 +98,14 @@ interface ActividadDao {
         AND completada = 0
         ORDER BY prioridad ASC, fechaEntrega ASC
     """)
-    fun buscarActividades(query: String): Flow<List<ActividadEntity>>
+    fun buscarActividadesPrioridad(query: String): Flow<List<ActividadEntity>>
+    @Query("""
+        SELECT * FROM actividades 
+        WHERE (titulo LIKE '%' || :query || '%' OR descripcion LIKE '%' || :query || '%')
+        AND completada = 0
+        ORDER BY fechaEntrega ASC
+    """)
+    fun buscarActividadesFecha(query: String): Flow<List<ActividadEntity>>
 
     // ESTADISTICAS
     @Query("SELECT COUNT(*) FROM actividades WHERE completada = 0")

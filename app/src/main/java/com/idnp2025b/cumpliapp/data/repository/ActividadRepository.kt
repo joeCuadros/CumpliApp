@@ -75,8 +75,12 @@ class ActividadRepository  @Inject constructor(
             .map { list -> list.map { it.toActividad() } }
     }
     // Busqueda
-    override fun buscarActividades(query: String): Flow<List<Actividad>> {
-        return actividadDao.buscarActividades(query)
+    override fun buscarActividadesPrioridad(query: String): Flow<List<Actividad>> {
+        return actividadDao.buscarActividadesPrioridad(query)
+            .map { list -> list.map { it.toActividad() } }
+    }
+    override fun buscarActividadesFecha(query: String): Flow<List<Actividad>> {
+        return actividadDao.buscarActividadesFecha(query)
             .map { list -> list.map { it.toActividad() } }
     }
     // Estadísticas

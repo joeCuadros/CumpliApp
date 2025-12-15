@@ -22,7 +22,8 @@ interface  InterfaceActividadRepository {
     fun getActividadesPorCategoriaPriorida(categoria: Categoria): Flow<List<Actividad>>
     fun getActividadesConRecordatorio(): Flow<List<Actividad>>
     // Busqueda
-    fun buscarActividades(query: String): Flow<List<Actividad>>
+    fun buscarActividadesPrioridad(query: String): Flow<List<Actividad>>
+    fun buscarActividadesFecha(query: String): Flow<List<Actividad>>
     // Estadísticas
     fun getCountActividadesPendientes(): Flow<Int>
     fun getCountPorCategoria(categoria: Categoria): Flow<Int>
