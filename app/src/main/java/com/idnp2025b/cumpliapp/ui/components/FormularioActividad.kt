@@ -1,6 +1,7 @@
 package com.idnp2025b.cumpliapp.ui.components
 
 import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.widget.DatePicker
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -50,6 +52,7 @@ fun FormularioActividad(
             value = titulo,
             onValueChange = onTituloChange,
             label = { Text("Título") },
+            placeholder = { Text("Ej: Entrega de proyecto final") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
@@ -60,6 +63,7 @@ fun FormularioActividad(
             value = descripcion,
             onValueChange = onDescripcionChange,
             label = { Text("Descripción (opcional)") },
+            placeholder = { Text("Detalles adicionales...") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(100.dp),
@@ -68,22 +72,47 @@ fun FormularioActividad(
 
         HorizontalDivider()
 
-        // Selector de Fecha
-        FechaSelector(
-            fechaMillis = fechaMillis,
-            onFechaSelected = onFechaChange
+        // NUEVO: Sección de Fecha y Hora
+        Text(
+            "Fecha y hora de entrega",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary
         )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Selector de Fecha
+            FechaSelector(
+                fechaMillis = fechaMillis,
+                onFechaSelected = onFechaChange,
+                modifier = Modifier.weight(1f)
+            )
+
+            // Selector de Hora
+            HoraSelector(
+                fechaMillis = fechaMillis,
+                onHoraSelected = onFechaChange,
+                modifier = Modifier.weight(1f)
+            )
+        }
 
         HorizontalDivider()
 
         // Prioridad
         Text("Prioridad", style = MaterialTheme.typography.titleSmall)
+        Text(
+            "¿Qué tan urgente es esta actividad?",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Prioridad.entries.forEach { p ->
                 FilterChip(
                     selected = prioridad == p,
                     onClick = { onPrioridadChange(p) },
-                    label = { Text(p.name) }
+                    label = { Text(obtenerTextoPrioridad(p)) }
                 )
             }
         }
@@ -92,7 +121,11 @@ fun FormularioActividad(
 
         // Categoría
         Text("Categoría", style = MaterialTheme.typography.titleSmall)
-        // Diseño adaptativo simple
+        Text(
+            "Organiza tus actividades por tipo",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Column {
             val categorias = Categoria.entries
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -119,16 +152,45 @@ fun FormularioActividad(
         HorizontalDivider()
 
         // Recordatorio
-        Row(
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Recordarme antes", style = MaterialTheme.typography.bodyLarge)
-            Switch(
-                checked = tieneRecordatorio,
-                onCheckedChange = onRecordatorioChange
+            colors = CardDefaults.cardColors(
+                containerColor = if (tieneRecordatorio) {
+                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                }
             )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onRecordatorioChange(!tieneRecordatorio) }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Recordatorio",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        if (tieneRecordatorio) {
+                            "Te avisaremos antes de la hora"
+                        } else {
+                            "Actívalo para recibir alertas"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = tieneRecordatorio,
+                    onCheckedChange = onRecordatorioChange
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(80.dp)) // Espacio para el FAB
@@ -136,7 +198,11 @@ fun FormularioActividad(
 }
 
 @Composable
-fun FechaSelector(fechaMillis: Long, onFechaSelected: (Long) -> Unit) {
+fun FechaSelector(
+    fechaMillis: Long,
+    onFechaSelected: (Long) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance().apply { timeInMillis = fechaMillis }
 
@@ -144,10 +210,10 @@ fun FechaSelector(fechaMillis: Long, onFechaSelected: (Long) -> Unit) {
         context,
         { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
             val newCalendar = Calendar.getInstance()
-            newCalendar.set(year, month, dayOfMonth)
-            // Mantener hora actual por defecto si se desea, o resetear a 9am
-            newCalendar.set(Calendar.HOUR_OF_DAY, 9)
-            newCalendar.set(Calendar.MINUTE, 0)
+            newCalendar.timeInMillis = fechaMillis // Mantener hora actual
+            newCalendar.set(Calendar.YEAR, year)
+            newCalendar.set(Calendar.MONTH, month)
+            newCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
             onFechaSelected(newCalendar.timeInMillis)
         },
         calendar.get(Calendar.YEAR),
@@ -160,12 +226,15 @@ fun FechaSelector(fechaMillis: Long, onFechaSelected: (Long) -> Unit) {
     OutlinedTextField(
         value = sdf.format(Date(fechaMillis)),
         onValueChange = {},
-        label = { Text("Fecha de entrega") },
+        label = { Text("Fecha") },
         readOnly = true,
-        trailingIcon = { Icon(Icons.Default.DateRange, null) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { datePickerDialog.show() },
+        trailingIcon = {
+            Icon(
+                Icons.Default.DateRange,
+                contentDescription = "Seleccionar fecha"
+            )
+        },
+        modifier = modifier.clickable { datePickerDialog.show() },
         enabled = false,
         colors = OutlinedTextFieldDefaults.colors(
             disabledTextColor = MaterialTheme.colorScheme.onSurface,
@@ -174,4 +243,63 @@ fun FechaSelector(fechaMillis: Long, onFechaSelected: (Long) -> Unit) {
             disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     )
+}
+
+// NUEVO: Selector de Hora
+@Composable
+fun HoraSelector(
+    fechaMillis: Long,
+    onHoraSelected: (Long) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance().apply { timeInMillis = fechaMillis }
+
+    val timePickerDialog = TimePickerDialog(
+        context,
+        { _, hourOfDay: Int, minute: Int ->
+            val newCalendar = Calendar.getInstance()
+            newCalendar.timeInMillis = fechaMillis // Mantener fecha actual
+            newCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+            newCalendar.set(Calendar.MINUTE, minute)
+            newCalendar.set(Calendar.SECOND, 0)
+            onHoraSelected(newCalendar.timeInMillis)
+        },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        true // Formato 24 horas
+    )
+
+    val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+
+    OutlinedTextField(
+        value = sdf.format(Date(fechaMillis)),
+        onValueChange = {},
+        label = { Text("Hora") },
+        readOnly = true,
+        trailingIcon = {
+            Icon(
+                Icons.Default.AccessTime,
+                contentDescription = "Seleccionar hora"
+            )
+        },
+        modifier = modifier.clickable { timePickerDialog.show() },
+        enabled = false,
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = MaterialTheme.colorScheme.outline,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    )
+}
+
+// Helper para mostrar texto más descriptivo en Prioridad
+private fun obtenerTextoPrioridad(prioridad: Prioridad): String {
+    return when (prioridad) {
+        Prioridad.ALTA -> "🔴 Alta"
+        Prioridad.MEDIA -> "🟡 Media"
+        Prioridad.BAJA -> "🟢 Baja"
+        Prioridad.URGENTE -> "URGENTE"
+    }
 }

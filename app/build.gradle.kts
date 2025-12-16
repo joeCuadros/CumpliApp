@@ -51,13 +51,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
     // ROOM
     val room_version = "2.8.4"
     implementation("androidx.room:room-runtime:${room_version}")
@@ -72,6 +65,10 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:${nav_version}")
     // Preference
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+    // NUEVAS DEPENDENCIAS: WorkManager para recordatorios
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
     // Iconos extendidos
     implementation("androidx.compose.material:material-icons-extended")
 }

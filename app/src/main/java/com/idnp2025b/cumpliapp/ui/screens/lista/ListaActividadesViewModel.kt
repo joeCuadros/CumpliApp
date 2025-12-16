@@ -1,10 +1,13 @@
 package com.idnp2025b.cumpliapp.ui.screens.lista
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.idnp2025b.cumpliapp.data.model.Actividad
 import com.idnp2025b.cumpliapp.data.model.Categoria
 import com.idnp2025b.cumpliapp.domain.repository.InterfaceActividadRepository
+import com.idnp2025b.cumpliapp.service.EnfoqueService
+import com.idnp2025b.cumpliapp.util.RecordatorioManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -22,8 +25,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ListaActividadesViewModel @Inject constructor(
-    private val repository: InterfaceActividadRepository
-) : ViewModel() {
+    application: Application,
+    private val repository: InterfaceActividadRepository,
+    private val recordatorioManager: RecordatorioManager
+) : AndroidViewModel(application) {
+
+    private val context = application.applicationContext
 
     // Estados de filtros y ordenamiento
     private val _filtroCategoria = MutableStateFlow<Categoria?>(null)
@@ -87,7 +94,6 @@ class ListaActividadesViewModel @Inject constructor(
     val eventFlow = _eventFlow.asSharedFlow()
 
     private fun obtenerActividadesConFiltros(filtros: FiltrosCombinados): Flow<List<Actividad>> {
-        // Prioridad 1: Búsqueda
         if (filtros.busqueda.isNotBlank()) {
             return when (filtros.ordenamiento) {
                 TipoOrdenamiento.POR_FECHA -> repository.buscarActividadesFecha(filtros.busqueda)
@@ -95,12 +101,10 @@ class ListaActividadesViewModel @Inject constructor(
             }
         }
 
-        // Prioridad 2: Solo con recordatorio
         if (filtros.soloConRecordatorio) {
             return repository.getActividadesConRecordatorio()
         }
 
-        // Prioridad 3: Filtro por categoría
         if (filtros.categoria != null) {
             return when (filtros.ordenamiento) {
                 TipoOrdenamiento.POR_FECHA ->
@@ -110,7 +114,6 @@ class ListaActividadesViewModel @Inject constructor(
             }
         }
 
-        // Por defecto: Ordenamiento sin filtros
         return when (filtros.ordenamiento) {
             TipoOrdenamiento.POR_FECHA -> repository.getActividadesOrdenadasPorFecha()
             TipoOrdenamiento.POR_PRIORIDAD -> repository.getActividadesOrdenadasPorPrioridad()
@@ -150,6 +153,12 @@ class ListaActividadesViewModel @Inject constructor(
     fun marcarComoCompletada(actividad: Actividad) {
         viewModelScope.launch {
             repository.marcarComoCompletada(actividad.id, !actividad.completada)
+
+            // Cancelar recordatorio si se completa
+            if (!actividad.completada) {
+                recordatorioManager.cancelarRecordatorio(actividad.id)
+            }
+
             val mensaje = if (!actividad.completada) {
                 "Actividad completada ✓"
             } else {
@@ -170,8 +179,36 @@ class ListaActividadesViewModel @Inject constructor(
     fun eliminarActividad(actividad: Actividad) {
         viewModelScope.launch {
             repository.deleteActividad(actividad)
+            recordatorioManager.cancelarRecordatorio(actividad.id)
             _actividadAEliminar.value = null
             _eventFlow.emit(UiEvent.ShowSnackbar("Actividad eliminada"))
+        }
+    }
+
+    // NUEVO: Manejo del Modo Enfoque
+    fun toggleModoEnfoque(actividad: Actividad) {
+        viewModelScope.launch {
+            if (actividad.enProgreso) {
+                // Pausar el servicio
+                EnfoqueService.pauseService(context)
+                _eventFlow.emit(UiEvent.ShowSnackbar("Modo enfoque pausado"))
+            } else {
+                // Verificar si hay otra actividad en progreso
+                val actividadEnProgreso = repository.getActividadEnProgreso()
+                if (actividadEnProgreso != null && actividadEnProgreso.id != actividad.id) {
+                    _eventFlow.emit(UiEvent.ShowSnackbar("Ya hay una actividad en modo enfoque"))
+                    return@launch
+                }
+
+                // Iniciar el servicio
+                EnfoqueService.startService(
+                    context,
+                    actividad.id,
+                    actividad.titulo,
+                    actividad.tiempoAcumulado
+                )
+                _eventFlow.emit(UiEvent.ShowSnackbar("Modo enfoque iniciado"))
+            }
         }
     }
 

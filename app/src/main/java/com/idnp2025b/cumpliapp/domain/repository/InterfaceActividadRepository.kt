@@ -30,4 +30,10 @@ interface  InterfaceActividadRepository {
     // Acciones
     suspend fun marcarComoCompletada(actividadId: Int, completada: Boolean)
     suspend fun deleteActividadesCompletadas()
+
+    suspend fun actualizarTiempoAcumulado(actividadId: Int, tiempo: Long)
+    suspend fun actualizarEstadoProgreso(actividadId: Int, enProgreso: Boolean)
+    suspend fun getActividadEnProgreso(): Actividad?
+    suspend fun detenerTodasLasActividades()
+
 }

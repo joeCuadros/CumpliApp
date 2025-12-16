@@ -50,7 +50,6 @@ fun ListaActividadesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                // --- CAMBIO CLAVE AQUÍ: Eliminamos el relleno de la barra de estado ---
                 windowInsets = WindowInsets(0.dp),
                 title = {
                     Column {
@@ -94,14 +93,12 @@ fun ListaActividadesScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Barra de Búsqueda
             SearchBar(
                 query = busqueda,
                 onQueryChange = { viewModel.setBusqueda(it) },
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // Filtros
             FiltrosActivosRow(
                 filtroCategoria = filtroCategoria,
                 ordenamiento = ordenamiento,
@@ -109,7 +106,6 @@ fun ListaActividadesScreen(
                 onLimpiarFiltros = { viewModel.limpiarFiltros() }
             )
 
-            // Contenido
             when (val state = uiState) {
                 is ListaUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -127,7 +123,8 @@ fun ListaActividadesScreen(
                         actividades = state.actividades,
                         onActividadClick = { onNavigateToEdit(it) },
                         onCompletarClick = { viewModel.marcarComoCompletada(it) },
-                        onEliminarSwipe = { viewModel.mostrarDialogoEliminar(it) }
+                        onEliminarSwipe = { viewModel.mostrarDialogoEliminar(it) },
+                        onEnfoqueClick = { viewModel.toggleModoEnfoque(it) } // NUEVO
                     )
                 }
             }
@@ -163,11 +160,11 @@ private fun ActividadesLista(
     actividades: List<Actividad>,
     onActividadClick: (Int) -> Unit,
     onCompletarClick: (Actividad) -> Unit,
-    onEliminarSwipe: (Actividad) -> Unit
+    onEliminarSwipe: (Actividad) -> Unit,
+    onEnfoqueClick: (Actividad) -> Unit // NUEVO
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        // Ajuste fino: Reducimos el espacio superior a 4dp
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 80.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -209,7 +206,8 @@ private fun ActividadesLista(
                         actividad = actividad,
                         onActividadClick = { onActividadClick(actividad.id) },
                         onCompletarClick = { onCompletarClick(actividad) },
-                        onEliminarClick = { onEliminarSwipe(actividad) }
+                        onEliminarClick = { onEliminarSwipe(actividad) },
+                        onEnfoqueClick = { onEnfoqueClick(actividad) } // NUEVO
                     )
                 }
             )

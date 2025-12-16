@@ -99,4 +99,21 @@ class ActividadRepository  @Inject constructor(
     override suspend fun deleteActividadesCompletadas() {
         actividadDao.deleteActividadesCompletadas()
     }
+
+    // NUEVAS IMPLEMENTACIONES
+    override suspend fun actualizarTiempoAcumulado(actividadId: Int, tiempo: Long) {
+        actividadDao.actualizarTiempoAcumulado(actividadId, tiempo)
+    }
+
+    override suspend fun actualizarEstadoProgreso(actividadId: Int, enProgreso: Boolean) {
+        actividadDao.actualizarEstadoProgreso(actividadId, enProgreso)
+    }
+
+    override suspend fun getActividadEnProgreso(): Actividad? {
+        return actividadDao.getActividadEnProgreso()?.toActividad()
+    }
+
+    override suspend fun detenerTodasLasActividades() {
+        actividadDao.detenerTodasLasActividades()
+    }
 }

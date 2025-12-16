@@ -117,4 +117,17 @@ interface ActividadDao {
     // MARCAR COMO COMPLETADA
     @Query("UPDATE actividades SET completada = :completada WHERE id = :actividadId")
     suspend fun marcarComoCompletada(actividadId: Int, completada: Boolean)
+
+    // NUEVOS MÉTODOS PARA MODO ENFOQUE
+    @Query("UPDATE actividades SET tiempoAcumulado = :tiempo WHERE id = :actividadId")
+    suspend fun actualizarTiempoAcumulado(actividadId: Int, tiempo: Long)
+
+    @Query("UPDATE actividades SET enProgreso = :enProgreso WHERE id = :actividadId")
+    suspend fun actualizarEstadoProgreso(actividadId: Int, enProgreso: Boolean)
+
+    @Query("SELECT * FROM actividades WHERE enProgreso = 1 LIMIT 1")
+    suspend fun getActividadEnProgreso(): ActividadEntity?
+
+    @Query("UPDATE actividades SET enProgreso = 0")
+    suspend fun detenerTodasLasActividades()
 }

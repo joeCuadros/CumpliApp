@@ -2,14 +2,17 @@ package com.idnp2025b.cumpliapp.ui.screens.crear
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.idnp2025b.cumpliapp.data.local.preferences.PreferencesManager
 import com.idnp2025b.cumpliapp.data.model.Actividad
 import com.idnp2025b.cumpliapp.data.model.Categoria
 import com.idnp2025b.cumpliapp.data.model.Prioridad
 import com.idnp2025b.cumpliapp.domain.repository.InterfaceActividadRepository
+import com.idnp2025b.cumpliapp.util.RecordatorioManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -17,7 +20,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CrearActividadViewModel @Inject constructor(
-    private val repository: InterfaceActividadRepository
+    private val repository: InterfaceActividadRepository,
+    private val recordatorioManager: RecordatorioManager,
+    private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
     private val _titulo = MutableStateFlow("")
@@ -64,7 +69,18 @@ class CrearActividadViewModel @Inject constructor(
                 tieneRecordatorio = _tieneRecordatorio.value,
                 completada = false
             )
-            repository.insertActividad(nuevaActividad)
+            val actividadId = repository.insertActividad(nuevaActividad).toInt()
+
+            // NUEVO: Programar recordatorio si está activado
+            if (_tieneRecordatorio.value) {
+                val prefs = preferencesManager.preferencesFlow.first()
+                val actividadConId = nuevaActividad.copy(id = actividadId)
+                recordatorioManager.programarRecordatorio(
+                    actividadConId,
+                    prefs.recordatorioMinutos
+                )
+            }
+
             _uiEvent.send(UiEvent.SaveSuccess)
         }
     }
@@ -72,8 +88,11 @@ class CrearActividadViewModel @Inject constructor(
     private fun obtenerFechaManana(): Long {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, 1)
-        calendar.set(Calendar.HOUR_OF_DAY, 9)
+        // Hora por defecto: 8:00 AM (hora común para inicio de clases/trabajo)
+        calendar.set(Calendar.HOUR_OF_DAY, 8)
         calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
         return calendar.timeInMillis
     }
 

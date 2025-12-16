@@ -3,14 +3,17 @@ package com.idnp2025b.cumpliapp.ui.screens.editar
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.idnp2025b.cumpliapp.data.local.preferences.PreferencesManager
 import com.idnp2025b.cumpliapp.data.model.Actividad
 import com.idnp2025b.cumpliapp.data.model.Categoria
 import com.idnp2025b.cumpliapp.data.model.Prioridad
 import com.idnp2025b.cumpliapp.domain.repository.InterfaceActividadRepository
+import com.idnp2025b.cumpliapp.util.RecordatorioManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,12 +21,12 @@ import javax.inject.Inject
 @HiltViewModel
 class EditarActividadViewModel @Inject constructor(
     private val repository: InterfaceActividadRepository,
+    private val recordatorioManager: RecordatorioManager,
+    private val preferencesManager: PreferencesManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val actividadId: Int = checkNotNull(savedStateHandle["id"])
-
-    // Estado local para saber si cargó la info
     private var _actividadCargada: Actividad? = null
 
     private val _titulo = MutableStateFlow("")
@@ -91,6 +94,18 @@ class EditarActividadViewModel @Inject constructor(
                     tieneRecordatorio = _tieneRecordatorio.value
                 )
                 repository.updateActividad(actividadActualizada)
+
+                // NUEVO: Reprogramar o cancelar recordatorio
+                if (_tieneRecordatorio.value) {
+                    val prefs = preferencesManager.preferencesFlow.first()
+                    recordatorioManager.programarRecordatorio(
+                        actividadActualizada,
+                        prefs.recordatorioMinutos
+                    )
+                } else {
+                    recordatorioManager.cancelarRecordatorio(actividadId)
+                }
+
                 _uiEvent.send(UiEvent.SaveSuccess)
             }
         }

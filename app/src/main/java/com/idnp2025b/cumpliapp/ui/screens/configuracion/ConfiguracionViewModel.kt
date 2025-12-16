@@ -17,13 +17,11 @@ class ConfiguracionViewModel @Inject constructor(
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
-    // Estado observable de la configuración
     val state: StateFlow<UserPreferences> = preferencesManager.preferencesFlow
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            // Valores iniciales mientras carga (evita parpadeos nulos)
-            initialValue = UserPreferences(AppTheme.SYSTEM, true)
+            initialValue = UserPreferences(AppTheme.SYSTEM, true, 15)
         )
 
     fun updateTheme(theme: AppTheme) {
@@ -35,6 +33,13 @@ class ConfiguracionViewModel @Inject constructor(
     fun toggleNotifications(enabled: Boolean) {
         viewModelScope.launch {
             preferencesManager.saveNotification(enabled)
+        }
+    }
+
+    // NUEVO: Actualizar minutos de recordatorio
+    fun updateRecordatorioMinutos(minutos: Int) {
+        viewModelScope.launch {
+            preferencesManager.saveRecordatorioMinutos(minutos)
         }
     }
 }

@@ -1,3 +1,4 @@
+// ActividadEntity.kt - ACTUALIZADO
 package com.idnp2025b.cumpliapp.data.local.entity
 
 import androidx.room.Entity
@@ -16,6 +17,7 @@ data class ActividadEntity(
     val prioridad: Prioridad,
     val categoria: Categoria,
     val completada: Boolean = false,
-    val fechaCreacion: Long = System.currentTimeMillis()
+    val fechaCreacion: Long = System.currentTimeMillis(),
+    val tiempoAcumulado: Long = 0L, // NUEVO
+    val enProgreso: Boolean = false // NUEVO
 )
-

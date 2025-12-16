@@ -2,8 +2,11 @@ package com.idnp2025b.cumpliapp.di
 
 import android.content.Context
 import androidx.room.Room
+import com.idnp2025b.cumpliapp.data.local.AppDatabase
+import com.idnp2025b.cumpliapp.data.local.MIGRATION_1_2
 import com.idnp2025b.cumpliapp.data.local.dao.ActividadDao
-import com.idnp2025b.cumpliapp.data.local.database.AppDatabase
+import com.idnp2025b.cumpliapp.data.repository.ActividadRepository
+import com.idnp2025b.cumpliapp.domain.repository.InterfaceActividadRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,15 +20,13 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideAppDatabase(
-        @ApplicationContext context: Context
-    ): AppDatabase {
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
-            AppDatabase.DATABASE_NAME
+            "cumpliapp_database"
         )
-            .fallbackToDestructiveMigration()
+            .addMigrations(MIGRATION_1_2) // NUEVA MIGRACIÓN
             .build()
     }
 
@@ -33,5 +34,11 @@ object DatabaseModule {
     @Singleton
     fun provideActividadDao(database: AppDatabase): ActividadDao {
         return database.actividadDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideActividadRepository(dao: ActividadDao): InterfaceActividadRepository {
+        return ActividadRepository(dao)
     }
 }
